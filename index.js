@@ -31,6 +31,8 @@ const server = app.listen(3000, () => {console.log('Listening')});
 // Captures ctrl-C exit
 process.on('SIGINT', () => {
     console.log('Server shutting down');
+
+    // Note: Because of the Webpack Hot Module Reloading middleware, the server will always have at least 1 connection (to that middleware) and so it will not shutdown via the following method gracefully. The delayed forced shutdown will always be called here.
     server.close(() => {
         console.log('Server shutdown');
         process.exit(0);
