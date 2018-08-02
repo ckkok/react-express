@@ -7,3 +7,5 @@ Inspect `webpack.config.js` and `.babelrc` for the configuration of this server.
 Express server logic goes in `index.js`.
 
 React logic goes in `/src/index.js`.
+
+Start the server with `npm start`.

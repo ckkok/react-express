@@ -39,7 +39,14 @@ process.on('SIGINT', () => {
     });
 
     setTimeout(() => {
-        console.log('Server delayed shutdown');
-        process.exit(1);
+        let exitCode = 0;
+        server.getConnections((err, count) => {
+            // If there is an error, or there is more than 1 connection (i.e. more than the webpack connection), exit with a non-zero error code so that the server admin can see that an improper exit was carried out.
+            if (err || count > 1) {
+                exitCode = 1
+            };
+            console.log('Server delayed shutdown');
+            process.exit(exitCode);
+        })  
     }, 500);
 })
