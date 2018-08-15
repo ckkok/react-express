@@ -1,37 +1,51 @@
-const webpack = require('webpack');
-const webpackDevMiddleware = require('webpack-dev-middleware');
-const webpackHotMiddleware = require('webpack-hot-middleware');
-const webpackConfig = require('./webpack.dev');
-const compiler = webpack(webpackConfig);
+const fs = require('fs');
 const express = require('express');
 const app = express();
-const fallback = require('express-history-api-fallback');
 const root = `${__dirname}/public`;
 
-// Express will serve the static index.html from the ./src directory.
+// Express will serve the static index.html from the root directory (defined above).
 // index.html will load bundle.js, which is the compiled script file by webpack
 app.use(express.static(root));
 
-// Express will use webpack to compile the JS files
-app.use(webpackDevMiddleware(compiler, {
-    noInfo: true,
-    stats: {
-        colors: true
-    }
-}));
+if (!process.env.NODE_ENV || process.env.NODE_ENV == 'development' || !fs.existsSync(`${root}/bundle.js`)) {
+    console.log('Server mode: Development');
+    const webpack = require('webpack');
+    const webpackDevMiddleware = require('webpack-dev-middleware');
+    const webpackHotMiddleware = require('webpack-hot-middleware');
+    const webpackConfig = require('./webpack.dev');
+    const compiler = webpack(webpackConfig);
 
-// Furthermore, express will listen for file changes and trigger webpack's compiler if any file changes, then push the updated script to any client. This allows us to see changes live in our browser, very useful for development work!
-app.use(webpackHotMiddleware(compiler));
+    // Express will use webpack to compile the JS files
+    app.use(webpackDevMiddleware(compiler, {
+        noInfo: true,
+        stats: {
+            colors: true
+        }
+    }));
 
-// Note that you are free to write your express server logic here on. As long as the view that you render loads bundle.js, it will have access to React's code (and in turn, React will have access to your view).
+    // Furthermore, express will listen for file changes and trigger webpack's compiler if any file changes, then push the updated script to any client. This allows us to see changes live in our browser, very useful for development work!
+    app.use(webpackHotMiddleware(compiler));
+}
+
+
+
+
+
+// Note that you are free to write your express server logic here on. As long as the view that you render loads bundle.js, it will have access to React's code (and in turn, React will have access to your view). In particular, define/require your routes here.
 app.get('/hello', (req, res) => {
     res.send('Hello back!');
 });
 
+
 // In case of React Router usage, refreshing/going directly to routes should trigger the index.html file to load instead. Ensure that this goes BELOW all the routes above, otherwise it will take precedence over any routes defined below it.
+const fallback = require('express-history-api-fallback');
 app.use(fallback('index.html', { root }))
 
 const server = app.listen(3000, () => {console.log('Listening')});
+
+
+
+
 
 // Captures ctrl-C exit
 process.on('SIGINT', () => {
