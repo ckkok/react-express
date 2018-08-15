@@ -6,10 +6,11 @@ const compiler = webpack(webpackConfig);
 const express = require('express');
 const app = express();
 const fallback = require('express-history-api-fallback');
+const root = `${__dirname}/public`;
 
 // Express will serve the static index.html from the ./src directory.
 // index.html will load bundle.js, which is the compiled script file by webpack
-app.use(express.static('./public'));
+app.use(express.static(root));
 
 // Express will use webpack to compile the JS files
 app.use(webpackDevMiddleware(compiler, {
@@ -28,7 +29,7 @@ app.get('/hello', (req, res) => {
 });
 
 // In case of React Router usage, refreshing/going directly to routes should trigger the index.html file to load instead. Ensure that this goes BELOW all the routes above, otherwise it will take precedence over any routes defined below it.
-app.use(fallback('/public/index.html'));
+app.use(fallback('index.html', { root }))
 
 const server = app.listen(3000, () => {console.log('Listening')});
 
